@@ -96,4 +96,32 @@ class AppTheme {
     fontSize: 20,
     letterSpacing: 0.5,
   );
+
+  static const TextStyle textMediumDark = TextStyle(
+    fontWeight: FontWeight.normal,
+    color: AppColors.darkBlue,
+    fontSize: 20,
+    letterSpacing: 0.5,
+  );
+
+  static const TextStyle textMediumPrimary = TextStyle(
+    fontWeight: FontWeight.normal,
+    color: AppColors.primaryColor,
+    fontSize: 23,
+    letterSpacing: 0.5,
+  );
+
+  static const TextStyle textMediumWhite = TextStyle(
+    fontWeight: FontWeight.normal,
+    color: AppColors.white,
+    fontSize: 23,
+    letterSpacing: 0.5,
+  );
+
+  static const TextStyle textAccesoRapido = TextStyle(
+    fontWeight: FontWeight.normal,
+    color: AppColors.primaryColor,
+    fontSize: 17,
+    letterSpacing: 0.5,
+  );
 }

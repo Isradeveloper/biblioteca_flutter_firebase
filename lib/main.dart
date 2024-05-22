@@ -1,9 +1,11 @@
+import 'package:biblioteca_flutter_firebase/screens/EventosPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/LoginPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/RegisterPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/Validate.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'services/usuarios.dart';
 import 'utils/helpers/navigation_helper.dart';
 import 'utils/helpers/snackbar_helper.dart';
 import 'values/app_strings.dart';
@@ -34,6 +36,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: NavigationHelper.key,
       routes: {
         '/': (context) => const Validate(),
+        'events': (context) => const EventosPage(user: null,),
         'login': (context) => const LoginPage(),
         'register': (context) => const RegisterPage()
       },
