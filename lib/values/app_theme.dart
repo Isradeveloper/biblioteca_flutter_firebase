@@ -89,4 +89,11 @@ class AppTheme {
     color: Colors.grey,
     letterSpacing: 0.5,
   );
+
+  static const TextStyle textMedium = TextStyle(
+    fontWeight: FontWeight.normal,
+    color: Colors.white,
+    fontSize: 20,
+    letterSpacing: 0.5,
+  );
 }
