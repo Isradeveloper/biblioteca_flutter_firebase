@@ -38,4 +38,16 @@ class AppStrings {
   static const String pleaseReEnterPassword =
       'Por favor, confirma la contraseña';
   static const String passwordNotMatched = 'Las contraseñas no son iguales';
+
+  static const nombre = 'Nombre';
+  static const pleaseEnterNombre = 'Ingrese un nombre';
+  static const invalidNombre = 'El nombre debe tener más de 7 dígitos';
+
+  static const descripcion = 'Descripción';
+  static const pleaseEnterDescripcion = 'Ingrese una descripción';
+  static const invalidDescripcion =
+      'La descripción debe tener más de 7 dígitos';
+
+  static const createEvento = 'Crear evento';
+  static const updateEvento = 'Actualizar evento';
 }

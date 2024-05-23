@@ -1,16 +1,24 @@
 import 'package:biblioteca_flutter_firebase/screens/HomePage.dart';
 import 'package:biblioteca_flutter_firebase/services/auth.dart';
+import 'package:biblioteca_flutter_firebase/services/eventos.dart';
 import 'package:biblioteca_flutter_firebase/services/usuarios.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:quickalert/quickalert.dart';
 
+import '../components/app_text_form_field.dart';
 import '../utils/common_widgets/gradient_background.dart';
 import '../values/app_colors.dart';
+import '../values/app_regex.dart';
 import '../values/app_strings.dart';
 import '../values/app_theme.dart';
 
-import 'package:carousel_slider/carousel_slider.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'dart:io';
 
 class EventosPage extends StatefulWidget {
   final Usuario? user;
@@ -29,6 +37,40 @@ class _EventosPageState extends State<EventosPage> {
     userFuture = UsuariosServices().iniciarAppUsuario();
   }
 
+  Future<dynamic> showNewEvent(BuildContext context) {
+    return showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return ModalFormulario(
+            onCompleted: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventosPage(user: widget.user),
+                  ));
+            },
+            edit: false,
+          );
+        });
+  }
+
+  Future<dynamic> showEditEvent(BuildContext context) {
+    return showModalBottomSheet(
+        context: context,
+        builder: (BuildContext context) {
+          return ModalFormulario(
+            onCompleted: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EventosPage(user: widget.user),
+                  ));
+            },
+            edit: true,
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,10 +86,10 @@ class _EventosPageState extends State<EventosPage> {
                   builder: (context) => const HomePage(),
                 ));
           } else {
-            print("nuevo");
+            showNewEvent(context);
           }
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(
               Icons.home,
@@ -103,7 +145,7 @@ class _EventosPageState extends State<EventosPage> {
                             await AuthServices().signOut();
                           },
                         ),
-                      )
+                      ),
                     ],
                   ),
 
@@ -126,7 +168,7 @@ class _EventosPageState extends State<EventosPage> {
                               subtitle: "12345678910 12345678910 12345678910",
                               onEditPressed: () {
                                 // Handle edit functionality here
-                                print('Edit product: ${index}');
+                                showEditEvent(context);
                               },
                               onDeletePressed: () {
                                 // Handle delete functionality here
@@ -208,7 +250,9 @@ class ProductCard extends StatelessWidget {
             child: Column(
               children: [
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    onEditPressed();
+                  },
                   icon: const Icon(Icons.edit),
                   color: AppColors.white,
                 ),
@@ -222,5 +266,262 @@ class ProductCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class ModalFormulario extends StatefulWidget {
+  final VoidCallback onCompleted;
+  final bool edit;
+  const ModalFormulario(
+      {super.key, required this.onCompleted, required this.edit});
+
+  @override
+  State<ModalFormulario> createState() => _ModalFormularioState();
+}
+
+class _ModalFormularioState extends State<ModalFormulario> {
+  File? selectedImage;
+  bool loading = false;
+
+  final _formKey = GlobalKey<FormState>();
+
+  final ValueNotifier<bool> fieldValidNotifier = ValueNotifier(false);
+
+  late final TextEditingController nombreController;
+  late final TextEditingController descripcionController;
+
+  void initializeControllers() {
+    nombreController = TextEditingController()..addListener(controllerListener);
+    descripcionController = TextEditingController()
+      ..addListener(controllerListener);
+  }
+
+  void disposeControllers() {
+    nombreController.dispose();
+    descripcionController.dispose();
+  }
+
+  void controllerListener() {
+    final nombre = nombreController.text;
+    final descripcion = descripcionController.text;
+
+    if (nombre.isEmpty && descripcion.isEmpty) return;
+
+    if (AppRegex.sevenMinRegex.hasMatch(nombre) &&
+        AppRegex.sevenMinRegex.hasMatch(descripcion) &&
+        selectedImage != null) {
+      fieldValidNotifier.value = true;
+    } else {
+      fieldValidNotifier.value = false;
+    }
+  }
+
+  Future pickImageFromUrl(String imageUrl) async {
+    final response = await http.get(Uri.parse(imageUrl));
+    final uri = Uri.parse(imageUrl);
+    final imageName = path.basename(uri.path);
+
+    if (response.statusCode == 200) {
+      final tempDir = await getTemporaryDirectory();
+      final file = File('${tempDir.path}/$imageName');
+
+      await file.writeAsBytes(response.bodyBytes);
+
+      setState(() {
+        selectedImage = file;
+        if (AppRegex.sevenMinRegex.hasMatch(nombreController.text) &&
+            AppRegex.sevenMinRegex.hasMatch(descripcionController.text) &&
+            selectedImage != null) {
+          fieldValidNotifier.value = true;
+        } else {
+          fieldValidNotifier.value = false;
+        }
+      });
+    } else {
+      print('Failed to load image: ${response.statusCode}');
+    }
+  }
+
+  Future pickImageFromGallery() async {
+    final returnedImage =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    if (returnedImage == null) return;
+
+    setState(() {
+      selectedImage = File(returnedImage.path);
+      if (AppRegex.sevenMinRegex.hasMatch(nombreController.text) &&
+          AppRegex.sevenMinRegex.hasMatch(descripcionController.text) &&
+          selectedImage != null) {
+        fieldValidNotifier.value = true;
+      } else {
+        fieldValidNotifier.value = false;
+      }
+    });
+  }
+
+  void toogleLoading() {
+    setState(() {
+      loading = !loading;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initializeControllers();
+    if (widget.edit == true) {
+      nombreController.text = "1234567";
+      descripcionController.text = "1234567";
+      setState(() {
+        toogleLoading();
+        pickImageFromUrl(
+                "https://firebasestorage.googleapis.com/v0/b/biblioteca-flutter-4991e.appspot.com/o/gf6QiI5ARwg1BlbiUbx3%2F1000000033.jpg?alt=media&token=d7d38993-b590-4c5e-adac-14e242be746b")
+            .then((value) => toogleLoading());
+      });
+    } else {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return loading
+        ? const Center(child: CircularProgressIndicator())
+        : Container(
+            color: AppColors.darkBlue,
+            padding: const EdgeInsets.all(20),
+            child: ListView(children: [
+              Column(
+                children: [
+                  const Text(
+                    "Agregar nuevo evento",
+                    style: AppTheme.textMedium,
+                  ),
+                  Form(
+                    key: _formKey,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          AppTextFormField(
+                            controller: nombreController,
+                            labelText: AppStrings.nombre,
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) => _formKey.currentState?.validate(),
+                            validator: (value) {
+                              return value!.isEmpty
+                                  ? AppStrings.pleaseEnterNombre
+                                  : AppRegex.sevenMinRegex.hasMatch(value)
+                                      ? null
+                                      : AppStrings.invalidNombre;
+                            },
+                          ),
+                          AppTextFormField(
+                            controller: descripcionController,
+                            labelText: AppStrings.descripcion,
+                            keyboardType: TextInputType.text,
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) => _formKey.currentState?.validate(),
+                            validator: (value) {
+                              return value!.isEmpty
+                                  ? AppStrings.pleaseEnterDescripcion
+                                  : AppRegex.sevenMinRegex.hasMatch(value)
+                                      ? null
+                                      : AppStrings.invalidDescripcion;
+                            },
+                          ),
+                          selectedImage != null
+                              ? Column(
+                                  children: [
+                                    Center(
+                                      child: SizedBox(
+                                        width: 500,
+                                        height: 200,
+                                        child: Image.file(selectedImage!,
+                                            fit: BoxFit.cover),
+                                      ),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          selectedImage =
+                                              null; // Limpiar la imagen
+                                        });
+                                      },
+                                      child: const Text("Limpiar imagen"),
+                                    ),
+                                  ],
+                                )
+                              : Center(
+                                  child: Column(
+                                    children: [
+                                      ElevatedButton(
+                                          child: const Text("Subir imagen"),
+                                          onPressed: () {
+                                            pickImageFromGallery();
+                                          })
+                                    ],
+                                  ),
+                                ),
+                          const SizedBox(height: 20),
+                          ValueListenableBuilder(
+                            valueListenable: fieldValidNotifier,
+                            builder: (_, isValid, __) {
+                              return FilledButton(
+                                onPressed: isValid
+                                    ? () {
+                                        toogleLoading();
+                                        EventosServices()
+                                            .crearEvento(
+                                          nombre: nombreController.text,
+                                          descripcion:
+                                              descripcionController.text,
+                                          imagen: selectedImage,
+                                        )
+                                            .then((respuesta) {
+                                          toogleLoading();
+
+                                          if (respuesta["success"] == true) {
+                                            QuickAlert.show(
+                                              context: context,
+                                              type: QuickAlertType.success,
+                                              title: '¡Genial!',
+                                              confirmBtnText: "Aceptar",
+                                              onConfirmBtnTap: () {
+                                                widget.onCompleted();
+                                              },
+                                              confirmBtnColor:
+                                                  AppColors.darkBlue,
+                                              text: respuesta["msg"],
+                                            );
+                                          } else {
+                                            QuickAlert.show(
+                                              context: context,
+                                              type: QuickAlertType.error,
+                                              title: 'Oops...',
+                                              confirmBtnText: "Aceptar",
+                                              confirmBtnColor:
+                                                  AppColors.darkBlue,
+                                              text: respuesta["msg"],
+                                            );
+                                          }
+                                        });
+                                      }
+                                    : null,
+                                child: Text(widget.edit == true
+                                    ? AppStrings.updateEvento
+                                    : AppStrings.createEvento),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ]));
   }
 }

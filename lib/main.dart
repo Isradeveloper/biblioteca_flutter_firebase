@@ -36,7 +36,9 @@ class MyApp extends StatelessWidget {
       navigatorKey: NavigationHelper.key,
       routes: {
         '/': (context) => const Validate(),
-        'events': (context) => const EventosPage(user: null,),
+        'events': (context) => const EventosPage(
+              user: null,
+            ),
         'login': (context) => const LoginPage(),
         'register': (context) => const RegisterPage()
       },

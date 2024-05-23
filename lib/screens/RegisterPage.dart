@@ -82,7 +82,7 @@ class _RegisterPageState extends State<RegisterPage> {
         confirmPassword.isEmpty) return;
 
     if (AppRegex.emailRegex.hasMatch(email) &&
-        AppRegex.passwordRegex.hasMatch(password) &&
+        AppRegex.sevenMinRegex.hasMatch(password) &&
         confirmPasswordController.text == passwordController.text) {
       fieldValidNotifier.value = true;
     } else {

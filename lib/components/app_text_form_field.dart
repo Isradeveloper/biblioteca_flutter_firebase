@@ -1,3 +1,4 @@
+import 'package:biblioteca_flutter_firebase/values/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class AppTextFormField extends StatelessWidget {
@@ -44,15 +45,13 @@ class AppTextFormField extends StatelessWidget {
         obscuringCharacter: '*',
         onEditingComplete: onEditingComplete,
         decoration: InputDecoration(
-          suffixIcon: suffixIcon,
-          labelText: labelText,
-          floatingLabelBehavior: FloatingLabelBehavior.always,
-        ),
+            suffixIcon: suffixIcon,
+            labelText: labelText,
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            errorStyle: const TextStyle(color: AppColors.primaryColor)),
         onTapOutside: (event) => FocusScope.of(context).unfocus(),
         style: const TextStyle(
-          fontWeight: FontWeight.w500,
-          color: Colors.black,
-        ),
+            fontWeight: FontWeight.w500, color: AppColors.white),
       ),
     );
   }

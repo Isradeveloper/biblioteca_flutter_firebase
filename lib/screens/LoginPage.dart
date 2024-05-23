@@ -62,7 +62,7 @@ class _LoginPageState extends State<LoginPage> {
     if (email.isEmpty && password.isEmpty) return;
 
     if (AppRegex.emailRegex.hasMatch(email) &&
-        AppRegex.passwordRegex.hasMatch(password)) {
+        AppRegex.sevenMinRegex.hasMatch(password)) {
       fieldValidNotifier.value = true;
     } else {
       fieldValidNotifier.value = false;

@@ -1,6 +1,7 @@
 import 'package:biblioteca_flutter_firebase/screens/EventosPage.dart';
 import 'package:biblioteca_flutter_firebase/services/auth.dart';
 import 'package:biblioteca_flutter_firebase/services/usuarios.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
@@ -26,6 +27,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    userFuture = UsuariosServices().iniciarAppUsuario();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
     userFuture = UsuariosServices().iniciarAppUsuario();
   }
 
