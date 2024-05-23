@@ -1,10 +1,7 @@
 import 'dart:io';
 
-import 'package:biblioteca_flutter_firebase/services/auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:path/path.dart';
 
 class Evento {
   final String nombre;
@@ -46,12 +43,12 @@ class EventosServices {
       String nombreFile = imagen!.path.split(Platform.pathSeparator).last;
 
       final Reference ref = storage.ref();
-      final imagenEventoRef = ref.child("${respuesta_db.id}/$nombreFile");
-      var respuesta_storage = await imagenEventoRef.putFile(imagen);
+      final imagenEventoRef = ref.child("eventos/${respuesta_db.id}/$nombreFile");
+      await imagenEventoRef.putFile(imagen);
 
       var fullPath = await imagenEventoRef.getDownloadURL();
 
-      var respuesta_db_update = await db
+      await db
           .collection("eventos")
           .doc(respuesta_db.id)
           .update({"imagen": fullPath});
@@ -60,5 +57,9 @@ class EventosServices {
     } catch (e) {
       return {"success": false, "msg": e};
     }
+  }
+
+  Stream<List<Evento>> listarEventos() {
+    return db.collection("eventos").snapshots().map((snap) => snap.docs.map((doc) => Evento.fromMap(doc, doc.data())).toList());
   }
 }

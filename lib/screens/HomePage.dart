@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
+import '../services/eventos.dart';
 import '../utils/common_widgets/gradient_background.dart';
 import '../utils/helpers/navigation_helper.dart';
 import '../values/app_colors.dart';
@@ -23,6 +24,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<Usuario?> userFuture;
+  late int numEventos = 0;
 
   @override
   void initState() {
@@ -95,7 +97,7 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(
                           height: 10,
                         ),
-                        CarouselSlider(
+                        CarouselSlider.builder(
                           options: CarouselOptions(
                             height: 350.0,
                             enlargeCenterPage: true,
@@ -104,17 +106,30 @@ class _HomePageState extends State<HomePage> {
                             autoPlayAnimationDuration:
                                 const Duration(milliseconds: 1000),
                           ),
-                          items: [1, 2, 3, 4, 5].map((i) {
-                            return Builder(
-                              builder: (BuildContext context) {
-                                return const ImagenConDescripcion(
-                                    urlImagen:
-                                        "https://www.mascotahogar.com/1920x1080/wallpaper-de-buscando-a-nemo.jpg",
-                                    descripcion:
-                                        "Evento nacional de feria del libro");
+                          itemCount:
+                              numEventos, // Número de elementos en el carrusel
+                          itemBuilder:
+                              (BuildContext context, int index, int realIndex) {
+                            return StreamBuilder<List<Evento>>(
+                              stream: EventosServices().listarEventos(),
+                              builder: (context, snapshot) {
+                                if (!snapshot.hasData) {
+                                  return const Center(
+                                    child: CircularProgressIndicator(),
+                                  );
+                                } else {
+                                  List<Evento> listadoEventos = snapshot.data!;
+                                  numEventos = listadoEventos.length;
+                                  Evento evento = listadoEventos[index];
+                                  return ImagenConDescripcion(
+                                    urlImagen: evento.imagen,
+                                    nombre: evento.nombre,
+                                    descripcion: evento.descripcion,
+                                  );
+                                }
                               },
                             );
-                          }).toList(),
+                          },
                         ),
                         const SizedBox(
                           height: 30,
@@ -250,9 +265,13 @@ class AccesoCard extends StatelessWidget {
 
 class ImagenConDescripcion extends StatelessWidget {
   const ImagenConDescripcion(
-      {super.key, required this.urlImagen, required this.descripcion});
+      {super.key,
+      required this.urlImagen,
+      required this.nombre,
+      required this.descripcion});
 
   final String urlImagen;
+  final String nombre;
   final String descripcion;
 
   @override
@@ -277,7 +296,7 @@ class ImagenConDescripcion extends StatelessWidget {
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Color.fromARGB(200, 0, 0, 0),
+                        Color.fromARGB(255, 0, 0, 0),
                         Color.fromARGB(0, 0, 0, 0)
                       ],
                       begin: Alignment.bottomCenter,
@@ -286,13 +305,26 @@ class ImagenConDescripcion extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(
                       vertical: 10.0, horizontal: 20.0),
-                  child: Text(
-                    descripcion,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15.0,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    children: [
+                      Text(
+                        nombre,
+                        style: const TextStyle(
+                          color: AppColors.primaryColor,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      // const SizedBox(height: 4),
+                      Text(
+                        descripcion,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),

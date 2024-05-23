@@ -156,28 +156,31 @@ class _EventosPageState extends State<EventosPage> {
                       height: 700,
                       padding: const EdgeInsets.all(25),
                       child: Container(
-                        margin: const EdgeInsets.only(bottom: 70),
-                        child: ListView.builder(
-                          itemCount: 8,
-                          itemBuilder: (context, index) {
-                            final product = null;
-                            return ProductCard(
-                              imageUrl:
-                                  "https://www.mascotahogar.com/1920x1080/wallpaper-de-buscando-a-nemo.jpg",
-                              title: "12345678910 12345678910 12345678910",
-                              subtitle: "12345678910 12345678910 12345678910",
-                              onEditPressed: () {
-                                // Handle edit functionality here
-                                showEditEvent(context);
-                              },
-                              onDeletePressed: () {
-                                // Handle delete functionality here
-                                print('Delete product: ${index}');
-                              },
-                            );
-                          },
-                        ),
-                      ))
+                          margin: const EdgeInsets.only(bottom: 70),
+                          child: StreamBuilder<List<Evento>>(
+                            stream: EventosServices().listarEventos(),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              } else {
+                                List<Evento> listadoEventos = snapshot.data!;
+                                return ListView.builder(
+                                    itemCount: listadoEventos.length,
+                                    itemBuilder: ((context, index) {
+                                      Evento evento = listadoEventos[index];
+                                      return ProductCard(
+                                          imageUrl: evento.imagen,
+                                          title: evento.nombre,
+                                          subtitle: evento.descripcion,
+                                          onEditPressed: () {
+                                            showEditEvent(context);
+                                          },
+                                          onDeletePressed: () {});
+                                    }));
+                              }
+                            },
+                          )))
                 ],
               ),
             );
@@ -223,45 +226,50 @@ class ProductCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.only(left: 10),
-            width: 270,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Text(
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
                     title,
                     style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: AppColors.primaryColor),
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: AppColors.primaryColor,
+                    ),
+                    overflow:
+                        TextOverflow.ellipsis, // Add ellipsis if text overflows
                   ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  subtitle,
-                  style: const TextStyle(fontSize: 14, color: Colors.white),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                    overflow:
+                        TextOverflow.ellipsis, // Add ellipsis if text overflows
+                  ),
+                ],
+              ),
             ),
           ),
-          Expanded(
-            child: Column(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    onEditPressed();
-                  },
-                  icon: const Icon(Icons.edit),
-                  color: AppColors.white,
-                ),
-                IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.delete),
-                    color: Colors.red),
-              ],
-            ),
+          Column(
+            children: [
+              IconButton(
+                onPressed: () {
+                  onEditPressed();
+                },
+                icon: const Icon(Icons.edit),
+                color: AppColors.white,
+              ),
+              IconButton(
+                onPressed: () {
+                  onDeletePressed();
+                },
+                icon: const Icon(Icons.delete),
+                color: Colors.red,
+              ),
+            ],
           ),
         ],
       ),
