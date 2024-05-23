@@ -24,7 +24,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<Usuario?> userFuture;
-  late int numEventos = 0;
 
   @override
   void initState() {
@@ -97,38 +96,35 @@ class _HomePageState extends State<HomePage> {
                         const SizedBox(
                           height: 10,
                         ),
-                        CarouselSlider.builder(
-                          options: CarouselOptions(
-                            height: 350.0,
-                            enlargeCenterPage: true,
-                            enableInfiniteScroll: true,
-                            autoPlay: true,
-                            autoPlayAnimationDuration:
-                                const Duration(milliseconds: 1000),
-                          ),
-                          itemCount:
-                              numEventos, // Número de elementos en el carrusel
-                          itemBuilder:
-                              (BuildContext context, int index, int realIndex) {
-                            return StreamBuilder<List<Evento>>(
-                              stream: EventosServices().listarEventos(),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                } else {
-                                  List<Evento> listadoEventos = snapshot.data!;
-                                  numEventos = listadoEventos.length;
-                                  Evento evento = listadoEventos[index];
-                                  return ImagenConDescripcion(
-                                    urlImagen: evento.imagen,
-                                    nombre: evento.nombre,
-                                    descripcion: evento.descripcion,
-                                  );
-                                }
-                              },
-                            );
+                        StreamBuilder(
+                          stream: EventosServices().listarEventos(),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else {
+                              List<Evento> listadoEventos = snapshot.data!;
+                              return CarouselSlider(
+                                  options: CarouselOptions(
+                                    height: 350.0,
+                                    enlargeCenterPage: true,
+                                    enableInfiniteScroll: true,
+                                    autoPlay: true,
+                                    autoPlayAnimationDuration:
+                                        const Duration(milliseconds: 1000),
+                                  ),
+                                  items: listadoEventos.map((i) {
+                                    return Builder(
+                                      builder: (BuildContext context) {
+                                        return ImagenConDescripcion(
+                                            urlImagen: i.imagen,
+                                            nombre: i.nombre,
+                                            descripcion: i.descripcion);
+                                      },
+                                    );
+                                  }).toList());
+                            }
                           },
                         ),
                         const SizedBox(
@@ -279,57 +275,65 @@ class ImagenConDescripcion extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(5.0),
       child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(5.0)),
-          child: Stack(
-            children: <Widget>[
-              Image.network(
-                urlImagen,
-                fit: BoxFit.cover,
-                width: 1000.0,
-                height: 350,
-              ),
-              Positioned(
-                bottom: 0.0,
-                left: 0.0,
-                right: 0.0,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 0, 0, 0),
-                        Color.fromARGB(0, 0, 0, 0)
-                      ],
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                    ),
+        borderRadius: const BorderRadius.all(Radius.circular(5.0)),
+        child: Stack(
+          children: <Widget>[
+            Image.network(
+              urlImagen,
+              fit: BoxFit.cover,
+              width: 1000.0,
+              height: 350,
+            ),
+            Positioned(
+              bottom: 0.0,
+              left: 0.0,
+              right: 0.0,
+              child: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Color.fromARGB(255, 0, 0, 0),
+                      Color.fromARGB(0, 0, 0, 0)
+                    ],
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
                   ),
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 10.0, horizontal: 20.0),
-                  child: Column(
-                    children: [
-                      Text(
+                ),
+                padding: const EdgeInsets.symmetric(
+                    vertical: 10.0, horizontal: 20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: Text(
                         nombre,
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: AppColors.primaryColor,
                           fontSize: 15.0,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      // const SizedBox(height: 4),
-                      Text(
+                    ),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: Text(
                         descripcion,
+                        textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 15.0,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          )),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

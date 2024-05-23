@@ -50,11 +50,12 @@ class _EventosPageState extends State<EventosPage> {
                   ));
             },
             edit: false,
+            evento: null,
           );
         });
   }
 
-  Future<dynamic> showEditEvent(BuildContext context) {
+  Future<dynamic> showEditEvent(BuildContext context, Evento evento) {
     return showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
@@ -67,6 +68,7 @@ class _EventosPageState extends State<EventosPage> {
                   ));
             },
             edit: true,
+            evento: evento,
           );
         });
   }
@@ -174,9 +176,63 @@ class _EventosPageState extends State<EventosPage> {
                                           title: evento.nombre,
                                           subtitle: evento.descripcion,
                                           onEditPressed: () {
-                                            showEditEvent(context);
+                                            showEditEvent(context, evento);
                                           },
-                                          onDeletePressed: () {});
+                                          onDeletePressed: () {
+                                            QuickAlert.show(
+                                                context: context,
+                                                type: QuickAlertType.warning,
+                                                title: 'Confirmación',
+                                                text: "¿Estás seguro?",
+                                                confirmBtnText: "Aceptar",
+                                                cancelBtnText: "Cancelar",
+                                                showCancelBtn: true,
+                                                onConfirmBtnTap: () {
+                                                  Navigator.of(context).pop();
+                                                  QuickAlert.show(
+                                                    context: context,
+                                                    type:
+                                                        QuickAlertType.loading,
+                                                    title: 'Cargando',
+                                                    showConfirmBtn: false,
+                                                    text: "Por favor, espere",
+                                                  );
+
+                                                  EventosServices()
+                                                      .eliminarEvento(
+                                                          uid: evento.uid)
+                                                      .then((respuesta) {
+                                                    Navigator.of(context).pop();
+
+                                                    if (respuesta["success"] ==
+                                                        true) {
+                                                      QuickAlert.show(
+                                                        context: context,
+                                                        type: QuickAlertType
+                                                            .success,
+                                                        title: '¡Genial!',
+                                                        confirmBtnText:
+                                                            "Aceptar",
+                                                        confirmBtnColor:
+                                                            AppColors.darkBlue,
+                                                        text: respuesta["msg"],
+                                                      );
+                                                    } else {
+                                                      QuickAlert.show(
+                                                        context: context,
+                                                        type: QuickAlertType
+                                                            .error,
+                                                        title: 'Oops...',
+                                                        confirmBtnText:
+                                                            "Aceptar",
+                                                        confirmBtnColor:
+                                                            AppColors.darkBlue,
+                                                        text: respuesta["msg"],
+                                                      );
+                                                    }
+                                                  });
+                                                });
+                                          });
                                     }));
                               }
                             },
@@ -280,8 +336,13 @@ class ProductCard extends StatelessWidget {
 class ModalFormulario extends StatefulWidget {
   final VoidCallback onCompleted;
   final bool edit;
+  final Evento? evento;
+
   const ModalFormulario(
-      {super.key, required this.onCompleted, required this.edit});
+      {super.key,
+      required this.onCompleted,
+      required this.edit,
+      required this.evento});
 
   @override
   State<ModalFormulario> createState() => _ModalFormularioState();
@@ -378,13 +439,12 @@ class _ModalFormularioState extends State<ModalFormulario> {
   void initState() {
     super.initState();
     initializeControllers();
-    if (widget.edit == true) {
-      nombreController.text = "1234567";
-      descripcionController.text = "1234567";
+    if (widget.edit == true && widget.evento != null) {
+      nombreController.text = widget.evento!.nombre;
+      descripcionController.text = widget.evento!.descripcion;
       setState(() {
         toogleLoading();
-        pickImageFromUrl(
-                "https://firebasestorage.googleapis.com/v0/b/biblioteca-flutter-4991e.appspot.com/o/gf6QiI5ARwg1BlbiUbx3%2F1000000033.jpg?alt=media&token=d7d38993-b590-4c5e-adac-14e242be746b")
+        pickImageFromUrl(widget.evento!.imagen)
             .then((value) => toogleLoading());
       });
     } else {}
@@ -458,6 +518,7 @@ class _ModalFormularioState extends State<ModalFormulario> {
                                         setState(() {
                                           selectedImage =
                                               null; // Limpiar la imagen
+                                          fieldValidNotifier.value = false;
                                         });
                                       },
                                       child: const Text("Limpiar imagen"),
@@ -482,42 +543,102 @@ class _ModalFormularioState extends State<ModalFormulario> {
                               return FilledButton(
                                 onPressed: isValid
                                     ? () {
-                                        toogleLoading();
-                                        EventosServices()
-                                            .crearEvento(
-                                          nombre: nombreController.text,
-                                          descripcion:
-                                              descripcionController.text,
-                                          imagen: selectedImage,
-                                        )
-                                            .then((respuesta) {
-                                          toogleLoading();
+                                        QuickAlert.show(
+                                          context: context,
+                                          type: QuickAlertType.warning,
+                                          title: 'Confirmación',
+                                          confirmBtnText: "Aceptar",
+                                          cancelBtnText: "Cancelar",
+                                          showCancelBtn: true,
+                                          onConfirmBtnTap: () {
+                                            toogleLoading();
+                                            Navigator.of(context).pop();
 
-                                          if (respuesta["success"] == true) {
-                                            QuickAlert.show(
-                                              context: context,
-                                              type: QuickAlertType.success,
-                                              title: '¡Genial!',
-                                              confirmBtnText: "Aceptar",
-                                              onConfirmBtnTap: () {
-                                                widget.onCompleted();
-                                              },
-                                              confirmBtnColor:
-                                                  AppColors.darkBlue,
-                                              text: respuesta["msg"],
-                                            );
-                                          } else {
-                                            QuickAlert.show(
-                                              context: context,
-                                              type: QuickAlertType.error,
-                                              title: 'Oops...',
-                                              confirmBtnText: "Aceptar",
-                                              confirmBtnColor:
-                                                  AppColors.darkBlue,
-                                              text: respuesta["msg"],
-                                            );
-                                          }
-                                        });
+                                            if (widget.edit == true &&
+                                                widget.evento != null) {
+                                              EventosServices()
+                                                  .actualizarEvento(
+                                                      nombre:
+                                                          nombreController.text,
+                                                      descripcion:
+                                                          descripcionController
+                                                              .text,
+                                                      imagen: selectedImage,
+                                                      uid: widget.evento!.uid)
+                                                  .then((respuesta) {
+                                                toogleLoading();
+
+                                                if (respuesta["success"] ==
+                                                    true) {
+                                                  QuickAlert.show(
+                                                    context: context,
+                                                    type:
+                                                        QuickAlertType.success,
+                                                    title: '¡Genial!',
+                                                    confirmBtnText: "Aceptar",
+                                                    onConfirmBtnTap: () {
+                                                      widget.onCompleted();
+                                                    },
+                                                    confirmBtnColor:
+                                                        AppColors.darkBlue,
+                                                    text: respuesta["msg"],
+                                                  );
+                                                } else {
+                                                  QuickAlert.show(
+                                                    context: context,
+                                                    type: QuickAlertType.error,
+                                                    title: 'Oops...',
+                                                    confirmBtnText: "Aceptar",
+                                                    confirmBtnColor:
+                                                        AppColors.darkBlue,
+                                                    text: respuesta["msg"],
+                                                  );
+                                                }
+                                              });
+                                            } else {
+                                              EventosServices()
+                                                  .crearEvento(
+                                                nombre: nombreController.text,
+                                                descripcion:
+                                                    descripcionController.text,
+                                                imagen: selectedImage,
+                                              )
+                                                  .then((respuesta) {
+                                                toogleLoading();
+
+                                                if (respuesta["success"] ==
+                                                    true) {
+                                                  QuickAlert.show(
+                                                    context: context,
+                                                    type:
+                                                        QuickAlertType.success,
+                                                    title: '¡Genial!',
+                                                    confirmBtnText: "Aceptar",
+                                                    onConfirmBtnTap: () {
+                                                      widget.onCompleted();
+                                                    },
+                                                    confirmBtnColor:
+                                                        AppColors.darkBlue,
+                                                    text: respuesta["msg"],
+                                                  );
+                                                } else {
+                                                  QuickAlert.show(
+                                                    context: context,
+                                                    type: QuickAlertType.error,
+                                                    title: 'Oops...',
+                                                    confirmBtnText: "Aceptar",
+                                                    confirmBtnColor:
+                                                        AppColors.darkBlue,
+                                                    text: respuesta["msg"],
+                                                  );
+                                                }
+                                              });
+                                            }
+                                          },
+                                          confirmBtnColor: AppColors.darkBlue,
+                                          text:
+                                              "¿Estás seguro de realizar esta acción?",
+                                        );
                                       }
                                     : null,
                                 child: Text(widget.edit == true
