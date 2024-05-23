@@ -392,8 +392,10 @@ class _ModalFormularioState extends State<ModalFormulario> {
             child: ListView(children: [
               Column(
                 children: [
-                  const Text(
-                    "Agregar nuevo evento",
+                  Text(
+                    widget.edit == true
+                        ? AppStrings.updateEvento
+                        : AppStrings.createEvento,
                     style: AppTheme.textMedium,
                   ),
                   Form(
