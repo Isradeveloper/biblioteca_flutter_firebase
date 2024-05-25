@@ -1,5 +1,6 @@
 import 'package:biblioteca_flutter_firebase/screens/EventosPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/LibrosPage.dart';
+import 'package:biblioteca_flutter_firebase/screens/PrestamosPage.dart';
 import 'package:biblioteca_flutter_firebase/services/auth.dart';
 import 'package:biblioteca_flutter_firebase/services/usuarios.dart';
 import 'package:flutter/foundation.dart';
@@ -194,6 +195,19 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                   const SizedBox(
                                     width: 20,
+                                  ),
+                                  AccesoCard(
+                                    nombre: "Prestamos",
+                                    icono: Icons.bookmark_added,
+                                    ruta: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                PrestamosPage(user: user),
+                                          ));
+                                    },
+                                    usuario: user,
                                   ),
                                   // AccesoCard(
                                   //     nombre: "Prestamos",

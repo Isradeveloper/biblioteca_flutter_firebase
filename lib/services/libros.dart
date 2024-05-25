@@ -146,6 +146,28 @@ class LibrosServices {
     }
   }
 
+  Future<Map<String, dynamic>> actualizarStock({
+    required int stock,
+    required String uid,
+  }) async {
+    try {
+      DocumentReference eventoRef = db.collection("libros").doc(uid);
+
+      await db.runTransaction((transaction) async {
+        transaction.update(eventoRef, {
+          "stock": stock,
+        });
+      });
+
+      return {
+        "success": true,
+        "msg": "El libro ha sido actualizado correctamente",
+      };
+    } catch (e) {
+      return {"success": false, "msg": e.toString()};
+    }
+  }
+
   Stream<List<Libro>> listarLibros() {
     return db.collection("libros").snapshots().map((snap) =>
         snap.docs.map((doc) => Libro.fromMap(doc, doc.data())).toList());

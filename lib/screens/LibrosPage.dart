@@ -1,6 +1,8 @@
 import 'package:biblioteca_flutter_firebase/screens/HomePage.dart';
+import 'package:biblioteca_flutter_firebase/screens/PrestamosPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/Validate.dart';
 import 'package:biblioteca_flutter_firebase/services/auth.dart';
+import 'package:biblioteca_flutter_firebase/services/prestamos.dart';
 import 'package:biblioteca_flutter_firebase/services/usuarios.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -93,7 +95,9 @@ class _LibrosPageState extends State<LibrosPage> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const HomePage(),
+                    builder: (context) => PrestamosPage(
+                      user: widget.user,
+                    ),
                   ));
             }
           }
@@ -199,6 +203,64 @@ class _LibrosPageState extends State<LibrosPage> {
                                           onEdit: () {
                                             showEditBook(context, libro);
                                           },
+                                          onPrestar: () {
+                                            QuickAlert.show(
+                                                context: context,
+                                                type: QuickAlertType.warning,
+                                                title: 'Confirmación',
+                                                text: "¿Estás seguro?",
+                                                confirmBtnText: "Aceptar",
+                                                cancelBtnText: "Cancelar",
+                                                showCancelBtn: true,
+                                                onConfirmBtnTap: () {
+                                                  Navigator.of(context).pop();
+                                                  QuickAlert.show(
+                                                    context: context,
+                                                    type:
+                                                        QuickAlertType.loading,
+                                                    title: 'Cargando',
+                                                    showConfirmBtn: false,
+                                                    text: "Por favor, espere",
+                                                  );
+
+                                                  PrestamosServices()
+                                                      .crearPrestamo(
+                                                          libroUid: libro.uid,
+                                                          libro: libro,
+                                                          usuarioUid: user.uid,
+                                                          completado: false)
+                                                      .then((respuesta) {
+                                                    Navigator.of(context).pop();
+
+                                                    if (respuesta["success"] ==
+                                                        true) {
+                                                      QuickAlert.show(
+                                                        context: context,
+                                                        type: QuickAlertType
+                                                            .success,
+                                                        title: '¡Genial!',
+                                                        confirmBtnText:
+                                                            "Aceptar",
+                                                        confirmBtnColor:
+                                                            AppColors.darkBlue,
+                                                        text: respuesta["msg"],
+                                                      );
+                                                    } else {
+                                                      QuickAlert.show(
+                                                        context: context,
+                                                        type: QuickAlertType
+                                                            .error,
+                                                        title: 'Oops...',
+                                                        confirmBtnText:
+                                                            "Aceptar",
+                                                        confirmBtnColor:
+                                                            AppColors.darkBlue,
+                                                        text: respuesta["msg"],
+                                                      );
+                                                    }
+                                                  });
+                                                });
+                                          },
                                           onDelete: () {
                                             QuickAlert.show(
                                                 context: context,
@@ -278,14 +340,15 @@ class LibroCard extends StatelessWidget {
   final Libro libro;
   final Function onEdit;
   final Function onDelete;
+  final Function onPrestar;
 
-  const LibroCard({
-    super.key,
-    required this.rol,
-    required this.libro,
-    required this.onEdit,
-    required this.onDelete,
-  });
+  const LibroCard(
+      {super.key,
+      required this.rol,
+      required this.libro,
+      required this.onEdit,
+      required this.onDelete,
+      required this.onPrestar});
 
   @override
   Widget build(BuildContext context) {
@@ -398,50 +461,7 @@ class LibroCard extends StatelessWidget {
                       rol == "cliente"
                   ? IconButton(
                       onPressed: () {
-                        QuickAlert.show(
-                            context: context,
-                            type: QuickAlertType.warning,
-                            title: 'Confirmación',
-                            text: "¿Estás seguro?",
-                            confirmBtnText: "Aceptar",
-                            cancelBtnText: "Cancelar",
-                            showCancelBtn: true,
-                            onConfirmBtnTap: () {
-                              Navigator.of(context).pop();
-                              QuickAlert.show(
-                                context: context,
-                                type: QuickAlertType.loading,
-                                title: 'Cargando',
-                                showConfirmBtn: false,
-                                text: "Por favor, espere",
-                              );
-
-                              LibrosServices()
-                                  .eliminarLibro(uid: libro.uid)
-                                  .then((respuesta) {
-                                Navigator.of(context).pop();
-
-                                if (respuesta["success"] == true) {
-                                  QuickAlert.show(
-                                    context: context,
-                                    type: QuickAlertType.success,
-                                    title: '¡Genial!',
-                                    confirmBtnText: "Aceptar",
-                                    confirmBtnColor: AppColors.darkBlue,
-                                    text: respuesta["msg"],
-                                  );
-                                } else {
-                                  QuickAlert.show(
-                                    context: context,
-                                    type: QuickAlertType.error,
-                                    title: 'Oops...',
-                                    confirmBtnText: "Aceptar",
-                                    confirmBtnColor: AppColors.darkBlue,
-                                    text: respuesta["msg"],
-                                  );
-                                }
-                              });
-                            });
+                        onPrestar();
                       },
                       icon: const Icon(Icons.bookmark_added),
                       color: AppColors.white,
