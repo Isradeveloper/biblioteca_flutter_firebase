@@ -1,4 +1,5 @@
 import 'package:biblioteca_flutter_firebase/screens/EventosPage.dart';
+import 'package:biblioteca_flutter_firebase/screens/LibrosPage.dart';
 import 'package:biblioteca_flutter_firebase/services/auth.dart';
 import 'package:biblioteca_flutter_firebase/services/usuarios.dart';
 import 'package:flutter/foundation.dart';
@@ -14,6 +15,8 @@ import '../values/app_strings.dart';
 import '../values/app_theme.dart';
 
 import 'package:carousel_slider/carousel_slider.dart';
+
+import 'Validate.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -73,7 +76,13 @@ class _HomePageState extends State<HomePage> {
                         child: ElevatedButton(
                           child: const Text("Cerrar sesión"),
                           onPressed: () async {
-                            await AuthServices().signOut();
+                            await AuthServices().signOut().then((value) {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const Validate(),
+                                  ));
+                            });
                           },
                         ),
                       )
@@ -100,7 +109,7 @@ class _HomePageState extends State<HomePage> {
                           stream: EventosServices().listarEventos(),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
-                              return Center(
+                              return const Center(
                                 child: CircularProgressIndicator(),
                               );
                             } else {
@@ -138,7 +147,7 @@ class _HomePageState extends State<HomePage> {
                           height: 30,
                         ),
                         Expanded(
-                            child: Container(
+                            child: SizedBox(
                           height: 20,
                           width: MediaQuery.of(context).size.width,
                           child: ListView(
@@ -157,17 +166,35 @@ class _HomePageState extends State<HomePage> {
                                   AccesoCard(
                                     nombre: "Eventos",
                                     icono: Icons.event_available,
-                                    nombreRuta: AppRoutes.events,
+                                    ruta: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                EventosPage(user: user),
+                                          ));
+                                    },
                                     usuario: user,
                                   ),
                                   const SizedBox(
                                     width: 20,
                                   ),
-                                  // AccesoCard(
-                                  //     nombre: "Libros", icono: Icons.book),
-                                  // SizedBox(
-                                  //   width: 20,
-                                  // ),
+                                  AccesoCard(
+                                    nombre: "Libros",
+                                    icono: Icons.book,
+                                    ruta: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                LibrosPage(user: user),
+                                          ));
+                                    },
+                                    usuario: user,
+                                  ),
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
                                   // AccesoCard(
                                   //     nombre: "Prestamos",
                                   //     icono: Icons.bookmark_added_rounded),
@@ -208,12 +235,12 @@ class AccesoCard extends StatelessWidget {
       {super.key,
       required this.nombre,
       required this.icono,
-      required this.nombreRuta,
+      required this.ruta,
       required this.usuario});
 
   final String nombre;
   final IconData icono;
-  final String nombreRuta;
+  final void Function() ruta;
   final Usuario usuario;
 
   @override
@@ -231,13 +258,7 @@ class AccesoCard extends StatelessWidget {
             color: Colors.transparent,
             child: InkWell(
                 borderRadius: const BorderRadius.all(Radius.circular(40)),
-                onTap: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EventosPage(user: usuario),
-                      ));
-                },
+                onTap: ruta,
                 child: Center(
                   child: Icon(
                     icono,

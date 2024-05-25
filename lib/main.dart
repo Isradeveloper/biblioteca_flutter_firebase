@@ -1,4 +1,5 @@
 import 'package:biblioteca_flutter_firebase/screens/EventosPage.dart';
+import 'package:biblioteca_flutter_firebase/screens/LibrosPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/LoginPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/RegisterPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/Validate.dart';
@@ -37,6 +38,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => const Validate(),
         'events': (context) => const EventosPage(
+              user: null,
+            ),
+        'books': (context) => const LibrosPage(
               user: null,
             ),
         'login': (context) => const LoginPage(),

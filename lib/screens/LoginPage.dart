@@ -84,137 +84,140 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const GradientBackground(
-            colors: [AppColors.darkBlue, AppColors.primaryDarkColor],
-            children: [
-              Text(
-                AppStrings.signInToYourNAccount,
-                style: AppTheme.titleLarge,
-              ),
-              SizedBox(height: 6),
-              Text(AppStrings.signInToYourAccount, style: AppTheme.bodySmall),
-            ],
-          ),
-          Form(
-            key: _formKey,
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  AppTextFormField(
-                    controller: emailController,
-                    labelText: AppStrings.email,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    onChanged: (_) => _formKey.currentState?.validate(),
-                    validator: (value) {
-                      return value!.isEmpty
-                          ? AppStrings.pleaseEnterEmailAddress
-                          : AppConstants.emailRegex.hasMatch(value)
-                              ? null
-                              : AppStrings.invalidEmailAddress;
-                    },
-                  ),
-                  ValueListenableBuilder(
-                    valueListenable: passwordNotifier,
-                    builder: (_, passwordObscure, __) {
-                      return AppTextFormField(
-                        obscureText: passwordObscure,
-                        controller: passwordController,
-                        labelText: AppStrings.password,
-                        textInputAction: TextInputAction.done,
-                        keyboardType: TextInputType.visiblePassword,
-                        onChanged: (_) => _formKey.currentState?.validate(),
-                        validator: (value) {
-                          return value!.isEmpty
-                              ? AppStrings.pleaseEnterPassword
-                              : AppConstants.passwordRegex.hasMatch(value)
-                                  ? null
-                                  : AppStrings.invalidPassword;
-                        },
-                        suffixIcon: IconButton(
-                          onPressed: () =>
-                              passwordNotifier.value = !passwordObscure,
-                          style: IconButton.styleFrom(
-                            minimumSize: const Size.square(48),
+      body: Container(
+        color: AppColors.darkBlue,
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            const GradientBackground(
+              colors: [AppColors.darkBlue, AppColors.primaryDarkColor],
+              children: [
+                Text(
+                  AppStrings.signInToYourNAccount,
+                  style: AppTheme.titleLarge,
+                ),
+                SizedBox(height: 6),
+                Text(AppStrings.signInToYourAccount, style: AppTheme.bodySmall),
+              ],
+            ),
+            Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    AppTextFormField(
+                      controller: emailController,
+                      labelText: AppStrings.email,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      onChanged: (_) => _formKey.currentState?.validate(),
+                      validator: (value) {
+                        return value!.isEmpty
+                            ? AppStrings.pleaseEnterEmailAddress
+                            : AppConstants.emailRegex.hasMatch(value)
+                                ? null
+                                : AppStrings.invalidEmailAddress;
+                      },
+                    ),
+                    ValueListenableBuilder(
+                      valueListenable: passwordNotifier,
+                      builder: (_, passwordObscure, __) {
+                        return AppTextFormField(
+                          obscureText: passwordObscure,
+                          controller: passwordController,
+                          labelText: AppStrings.password,
+                          textInputAction: TextInputAction.done,
+                          keyboardType: TextInputType.visiblePassword,
+                          onChanged: (_) => _formKey.currentState?.validate(),
+                          validator: (value) {
+                            return value!.isEmpty
+                                ? AppStrings.pleaseEnterPassword
+                                : AppConstants.passwordRegex.hasMatch(value)
+                                    ? null
+                                    : AppStrings.invalidPassword;
+                          },
+                          suffixIcon: IconButton(
+                            onPressed: () =>
+                                passwordNotifier.value = !passwordObscure,
+                            style: IconButton.styleFrom(
+                              minimumSize: const Size.square(48),
+                            ),
+                            icon: Icon(
+                              passwordObscure
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              size: 20,
+                              color: AppColors.white,
+                            ),
                           ),
-                          icon: Icon(
-                            passwordObscure
-                                ? Icons.visibility_off_outlined
-                                : Icons.visibility_outlined,
-                            size: 20,
-                            color: Colors.black,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  ValueListenableBuilder(
-                    valueListenable: fieldValidNotifier,
-                    builder: (_, isValid, __) {
-                      return FilledButton(
-                        onPressed: isValid
-                            ? () async {
-                                await login().then((data) {
-                                  if (data["user"] != null) {
-                                    emailController.clear();
-                                    passwordController.clear();
-                                    QuickAlert.show(
-                                      context: context,
-                                      type: QuickAlertType.success,
-                                      title: '¡Genial!',
-                                      confirmBtnText: "Aceptar",
-                                      confirmBtnColor: AppColors.darkBlue,
-                                      text: data["msg"],
-                                    ).then((value) {
-                                      NavigationHelper.pushReplacementNamed(
-                                        AppRoutes.home,
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    ValueListenableBuilder(
+                      valueListenable: fieldValidNotifier,
+                      builder: (_, isValid, __) {
+                        return FilledButton(
+                          onPressed: isValid
+                              ? () async {
+                                  await login().then((data) {
+                                    if (data["user"] != null) {
+                                      emailController.clear();
+                                      passwordController.clear();
+                                      QuickAlert.show(
+                                        context: context,
+                                        type: QuickAlertType.success,
+                                        title: '¡Genial!',
+                                        confirmBtnText: "Aceptar",
+                                        confirmBtnColor: AppColors.darkBlue,
+                                        text: data["msg"],
+                                      ).then((value) {
+                                        NavigationHelper.pushReplacementNamed(
+                                          AppRoutes.home,
+                                        );
+                                      });
+                                    } else {
+                                      QuickAlert.show(
+                                        context: context,
+                                        type: QuickAlertType.error,
+                                        title: 'Oops...',
+                                        confirmBtnText: "Aceptar",
+                                        confirmBtnColor: AppColors.darkBlue,
+                                        text: data["msg"],
                                       );
-                                    });
-                                  } else {
-                                    QuickAlert.show(
-                                      context: context,
-                                      type: QuickAlertType.error,
-                                      title: 'Oops...',
-                                      confirmBtnText: "Aceptar",
-                                      confirmBtnColor: AppColors.darkBlue,
-                                      text: data["msg"],
-                                    );
-                                  }
-                                });
-                              }
-                            : null,
-                        child: const Text(AppStrings.login),
-                      );
-                    },
-                  ),
-                ],
+                                    }
+                                  });
+                                }
+                              : null,
+                          child: const Text(AppStrings.login),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                AppStrings.doNotHaveAnAccount,
-                style: AppTheme.bodySmall.copyWith(color: Colors.black),
-              ),
-              const SizedBox(width: 4),
-              TextButton(
-                onPressed: () => NavigationHelper.pushReplacementNamed(
-                  AppRoutes.register,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  AppStrings.doNotHaveAnAccount,
+                  style: AppTheme.bodySmall.copyWith(color: Colors.white),
                 ),
-                child: const Text(AppStrings.register),
-              ),
-            ],
-          ),
-        ],
+                const SizedBox(width: 4),
+                TextButton(
+                  onPressed: () => NavigationHelper.pushReplacementNamed(
+                    AppRoutes.register,
+                  ),
+                  child: const Text(AppStrings.register),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

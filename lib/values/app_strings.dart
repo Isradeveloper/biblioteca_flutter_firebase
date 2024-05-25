@@ -50,4 +50,19 @@ class AppStrings {
 
   static const createEvento = 'Crear evento';
   static const updateEvento = 'Actualizar evento';
+
+  static const titulo = 'Título';
+  static const pleaseEnterTitulo = 'Ingrese un Título';
+  static const invalidTitulo = 'El Título debe tener más de 7 dígitos';
+
+  static const autor = 'Autor';
+  static const pleaseEnterAutor = 'Ingrese una autor';
+  static const invalidAutor = 'El autor debe tener más de 7 dígitos';
+
+  static const stock = 'Stock';
+  static const pleaseEnterStock = 'Ingrese cantidad disponible';
+  static const invalidStock = 'El stock debe ser mayor que 0';
+
+  static const createLibro = 'Crear libro';
+  static const updateLibro = 'Actualizar libro';
 }

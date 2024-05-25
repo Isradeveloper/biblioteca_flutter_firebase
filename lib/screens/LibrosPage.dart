@@ -1,15 +1,13 @@
 import 'package:biblioteca_flutter_firebase/screens/HomePage.dart';
 import 'package:biblioteca_flutter_firebase/screens/Validate.dart';
 import 'package:biblioteca_flutter_firebase/services/auth.dart';
-import 'package:biblioteca_flutter_firebase/services/eventos.dart';
 import 'package:biblioteca_flutter_firebase/services/usuarios.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:quickalert/quickalert.dart';
 
 import '../components/app_text_form_field.dart';
+import '../services/libros.dart';
 import '../utils/common_widgets/gradient_background.dart';
 import '../values/app_colors.dart';
 import '../values/app_regex.dart';
@@ -21,15 +19,15 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io';
 
-class EventosPage extends StatefulWidget {
+class LibrosPage extends StatefulWidget {
   final Usuario? user;
-  const EventosPage({super.key, required this.user});
+  const LibrosPage({super.key, required this.user});
 
   @override
-  State<EventosPage> createState() => _EventosPageState();
+  State<LibrosPage> createState() => _LibrosPageState();
 }
 
-class _EventosPageState extends State<EventosPage> {
+class _LibrosPageState extends State<LibrosPage> {
   late Future<Usuario?> userFuture;
 
   @override
@@ -38,7 +36,7 @@ class _EventosPageState extends State<EventosPage> {
     userFuture = UsuariosServices().iniciarAppUsuario();
   }
 
-  Future<dynamic> showNewEvent(BuildContext context) {
+  Future<dynamic> showNewBook(BuildContext context) {
     return showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
@@ -47,16 +45,16 @@ class _EventosPageState extends State<EventosPage> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EventosPage(user: widget.user),
+                    builder: (context) => LibrosPage(user: widget.user),
                   ));
             },
             edit: false,
-            evento: null,
+            libro: null,
           );
         });
   }
 
-  Future<dynamic> showEditEvent(BuildContext context, Evento evento) {
+  Future<dynamic> showEditBook(BuildContext context, Libro evento) {
     return showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
@@ -65,11 +63,11 @@ class _EventosPageState extends State<EventosPage> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EventosPage(user: widget.user),
+                    builder: (context) => LibrosPage(user: widget.user),
                   ));
             },
             edit: true,
-            evento: evento,
+            libro: evento,
           );
         });
   }
@@ -89,11 +87,19 @@ class _EventosPageState extends State<EventosPage> {
                   builder: (context) => const HomePage(),
                 ));
           } else {
-            showNewEvent(context);
+            if (widget.user!.rol == "administrador") {
+              showNewBook(context);
+            } else {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomePage(),
+                  ));
+            }
           }
         },
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(
               Icons.home,
               color: AppColors.darkBlue,
@@ -102,14 +108,23 @@ class _EventosPageState extends State<EventosPage> {
             label: "Regresar al menú",
             backgroundColor: AppColors.darkBlue,
           ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.add,
-              size: 40,
-              color: AppColors.darkBlue,
-            ),
-            label: "Agregar nuevo",
-          ),
+          widget.user!.rol == "administrador"
+              ? const BottomNavigationBarItem(
+                  icon: Icon(
+                    Icons.add,
+                    size: 40,
+                    color: AppColors.darkBlue,
+                  ),
+                  label: "Agregar nuevo",
+                )
+              : const BottomNavigationBarItem(
+                  icon: Icon(
+                    Icons.bookmark_added_sharp,
+                    size: 40,
+                    color: AppColors.darkBlue,
+                  ),
+                  label: "Mis prestamos",
+                ),
         ],
       ),
       body: FutureBuilder<Usuario?>(
@@ -131,11 +146,11 @@ class _EventosPageState extends State<EventosPage> {
                         ],
                         children: [
                           Text(
-                            "Eventos",
+                            "Libros",
                             style: AppTheme.titleLarge,
                           ),
                           SizedBox(height: 6),
-                          Text("Administra los eventos disponibles",
+                          Text("Administra los Libros disponibles",
                               style: AppTheme.textMedium),
                         ],
                       ),
@@ -166,26 +181,25 @@ class _EventosPageState extends State<EventosPage> {
                       padding: const EdgeInsets.all(25),
                       child: Container(
                           margin: const EdgeInsets.only(bottom: 70),
-                          child: StreamBuilder<List<Evento>>(
-                            stream: EventosServices().listarEventos(),
+                          child: StreamBuilder<List<Libro>>(
+                            stream: LibrosServices().listarLibros(),
                             builder: (context, snapshot) {
                               if (!snapshot.hasData) {
                                 return const Center(
                                     child: CircularProgressIndicator());
                               } else {
-                                List<Evento> listadoEventos = snapshot.data!;
+                                List<Libro> listadoLibros = snapshot.data!;
                                 return ListView.builder(
-                                    itemCount: listadoEventos.length,
+                                    itemCount: listadoLibros.length,
                                     itemBuilder: ((context, index) {
-                                      Evento evento = listadoEventos[index];
-                                      return ProductCard(
-                                          imageUrl: evento.imagen,
-                                          title: evento.nombre,
-                                          subtitle: evento.descripcion,
-                                          onEditPressed: () {
-                                            showEditEvent(context, evento);
+                                      Libro libro = listadoLibros[index];
+                                      return LibroCard(
+                                          rol: user.rol,
+                                          libro: libro,
+                                          onEdit: () {
+                                            showEditBook(context, libro);
                                           },
-                                          onDeletePressed: () {
+                                          onDelete: () {
                                             QuickAlert.show(
                                                 context: context,
                                                 type: QuickAlertType.warning,
@@ -205,9 +219,9 @@ class _EventosPageState extends State<EventosPage> {
                                                     text: "Por favor, espere",
                                                   );
 
-                                                  EventosServices()
-                                                      .eliminarEvento(
-                                                          uid: evento.uid)
+                                                  LibrosServices()
+                                                      .eliminarLibro(
+                                                          uid: libro.uid)
                                                       .then((respuesta) {
                                                     Navigator.of(context).pop();
 
@@ -259,21 +273,19 @@ class _EventosPageState extends State<EventosPage> {
   }
 }
 
-class ProductCard extends StatelessWidget {
-  final String imageUrl;
-  final String title;
-  final String subtitle;
-  final Function onEditPressed;
-  final Function onDeletePressed;
+class LibroCard extends StatelessWidget {
+  final String rol;
+  final Libro libro;
+  final Function onEdit;
+  final Function onDelete;
 
-  const ProductCard({
-    Key? key,
-    required this.imageUrl,
-    required this.title,
-    required this.subtitle,
-    required this.onEditPressed,
-    required this.onDeletePressed,
-  }) : super(key: key);
+  const LibroCard({
+    super.key,
+    required this.rol,
+    required this.libro,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -281,11 +293,11 @@ class ProductCard extends StatelessWidget {
       color: AppColors.darkBlueShadow,
       child: Row(
         children: [
-          Container(
+          SizedBox(
             width: 150,
             height: 150,
             child: Image.network(
-              imageUrl,
+              libro.portada,
               fit: BoxFit.cover,
             ),
           ),
@@ -296,7 +308,7 @@ class ProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    libro.titulo.toUpperCase(),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
@@ -306,11 +318,56 @@ class ProductCard extends StatelessWidget {
                         TextOverflow.ellipsis, // Add ellipsis if text overflows
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
-                    overflow:
-                        TextOverflow.ellipsis, // Add ellipsis if text overflows
+                  Row(
+                    children: [
+                      const Text(
+                        "Autor: ",
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                        overflow: TextOverflow
+                            .ellipsis, // Add ellipsis if text overflows
+                      ),
+                      Text(
+                        libro.autor.toUpperCase(),
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.primaryColor),
+                        overflow: TextOverflow
+                            .ellipsis, // Add ellipsis if text overflows
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Text(
+                        "Aplica préstamo: ",
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                        overflow: TextOverflow
+                            .ellipsis, // Add ellipsis if text overflows
+                      ),
+                      Text(
+                        libro.aplicaPrestamo ? "SI" : "NO",
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.primaryColor),
+                        overflow: TextOverflow
+                            .ellipsis, // Add ellipsis if text overflows
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Text(
+                        "Stock: ",
+                        style: TextStyle(fontSize: 14, color: Colors.white),
+                        overflow: TextOverflow
+                            .ellipsis, // Add ellipsis if text overflows
+                      ),
+                      Text(
+                        libro.stock.toString(),
+                        style: const TextStyle(
+                            fontSize: 14, color: AppColors.primaryColor),
+                        overflow: TextOverflow
+                            .ellipsis, // Add ellipsis if text overflows
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -318,20 +375,78 @@ class ProductCard extends StatelessWidget {
           ),
           Column(
             children: [
-              IconButton(
-                onPressed: () {
-                  onEditPressed();
-                },
-                icon: const Icon(Icons.edit),
-                color: AppColors.white,
-              ),
-              IconButton(
-                onPressed: () {
-                  onDeletePressed();
-                },
-                icon: const Icon(Icons.delete),
-                color: Colors.red,
-              ),
+              rol == "administrador"
+                  ? IconButton(
+                      onPressed: () {
+                        onEdit();
+                      },
+                      icon: const Icon(Icons.edit),
+                      color: AppColors.white,
+                    )
+                  : Container(),
+              rol == "administrador"
+                  ? IconButton(
+                      onPressed: () {
+                        onDelete();
+                      },
+                      icon: const Icon(Icons.delete),
+                      color: Colors.red,
+                    )
+                  : Container(),
+              libro.stock > 0 &&
+                      libro.aplicaPrestamo == true &&
+                      rol == "cliente"
+                  ? IconButton(
+                      onPressed: () {
+                        QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.warning,
+                            title: 'Confirmación',
+                            text: "¿Estás seguro?",
+                            confirmBtnText: "Aceptar",
+                            cancelBtnText: "Cancelar",
+                            showCancelBtn: true,
+                            onConfirmBtnTap: () {
+                              Navigator.of(context).pop();
+                              QuickAlert.show(
+                                context: context,
+                                type: QuickAlertType.loading,
+                                title: 'Cargando',
+                                showConfirmBtn: false,
+                                text: "Por favor, espere",
+                              );
+
+                              LibrosServices()
+                                  .eliminarLibro(uid: libro.uid)
+                                  .then((respuesta) {
+                                Navigator.of(context).pop();
+
+                                if (respuesta["success"] == true) {
+                                  QuickAlert.show(
+                                    context: context,
+                                    type: QuickAlertType.success,
+                                    title: '¡Genial!',
+                                    confirmBtnText: "Aceptar",
+                                    confirmBtnColor: AppColors.darkBlue,
+                                    text: respuesta["msg"],
+                                  );
+                                } else {
+                                  QuickAlert.show(
+                                    context: context,
+                                    type: QuickAlertType.error,
+                                    title: 'Oops...',
+                                    confirmBtnText: "Aceptar",
+                                    confirmBtnColor: AppColors.darkBlue,
+                                    text: respuesta["msg"],
+                                  );
+                                }
+                              });
+                            });
+                      },
+                      icon: const Icon(Icons.bookmark_added),
+                      color: AppColors.white,
+                    )
+                  : Container(),
             ],
           ),
         ],
@@ -343,13 +458,13 @@ class ProductCard extends StatelessWidget {
 class ModalFormulario extends StatefulWidget {
   final VoidCallback onCompleted;
   final bool edit;
-  final Evento? evento;
+  final Libro? libro;
 
   const ModalFormulario(
       {super.key,
       required this.onCompleted,
       required this.edit,
-      required this.evento});
+      required this.libro});
 
   @override
   State<ModalFormulario> createState() => _ModalFormularioState();
@@ -358,34 +473,39 @@ class ModalFormulario extends StatefulWidget {
 class _ModalFormularioState extends State<ModalFormulario> {
   File? selectedImage;
   bool loading = false;
+  bool? aplicaPrestamo = false;
 
   final _formKey = GlobalKey<FormState>();
 
   final ValueNotifier<bool> fieldValidNotifier = ValueNotifier(false);
 
-  late final TextEditingController nombreController;
-  late final TextEditingController descripcionController;
+  late final TextEditingController tituloController;
+  late final TextEditingController autorController;
+  late final TextEditingController stockController;
 
   void initializeControllers() {
-    nombreController = TextEditingController()..addListener(controllerListener);
-    descripcionController = TextEditingController()
-      ..addListener(controllerListener);
+    tituloController = TextEditingController()..addListener(controllerListener);
+    autorController = TextEditingController()..addListener(controllerListener);
+    stockController = TextEditingController()..addListener(controllerListener);
   }
 
   void disposeControllers() {
-    nombreController.dispose();
-    descripcionController.dispose();
+    tituloController.dispose();
+    autorController.dispose();
+    stockController.dispose();
   }
 
   void controllerListener() {
-    final nombre = nombreController.text;
-    final descripcion = descripcionController.text;
+    final titulo = tituloController.text;
+    final autor = autorController.text;
+    final stock = stockController.text;
 
-    if (nombre.isEmpty && descripcion.isEmpty) return;
+    if (titulo.isEmpty && autor.isEmpty && stock.isEmpty) return;
 
-    if (AppRegex.sevenMinRegex.hasMatch(nombre) &&
-        AppRegex.sevenMinRegex.hasMatch(descripcion) &&
-        selectedImage != null) {
+    if (AppRegex.sevenMinRegex.hasMatch(titulo) &&
+        AppRegex.sevenMinRegex.hasMatch(autor) &&
+        selectedImage != null &&
+        AppRegex.positiveNumberRegex.hasMatch(stock)) {
       fieldValidNotifier.value = true;
     } else {
       fieldValidNotifier.value = false;
@@ -405,8 +525,8 @@ class _ModalFormularioState extends State<ModalFormulario> {
 
       setState(() {
         selectedImage = file;
-        if (AppRegex.sevenMinRegex.hasMatch(nombreController.text) &&
-            AppRegex.sevenMinRegex.hasMatch(descripcionController.text) &&
+        if (AppRegex.sevenMinRegex.hasMatch(tituloController.text) &&
+            AppRegex.sevenMinRegex.hasMatch(autorController.text) &&
             selectedImage != null) {
           fieldValidNotifier.value = true;
         } else {
@@ -426,9 +546,10 @@ class _ModalFormularioState extends State<ModalFormulario> {
 
     setState(() {
       selectedImage = File(returnedImage.path);
-      if (AppRegex.sevenMinRegex.hasMatch(nombreController.text) &&
-          AppRegex.sevenMinRegex.hasMatch(descripcionController.text) &&
-          selectedImage != null) {
+      if (AppRegex.sevenMinRegex.hasMatch(tituloController.text) &&
+          AppRegex.sevenMinRegex.hasMatch(autorController.text) &&
+          selectedImage != null &&
+          AppRegex.positiveNumberRegex.hasMatch(stockController.text)) {
         fieldValidNotifier.value = true;
       } else {
         fieldValidNotifier.value = false;
@@ -446,13 +567,15 @@ class _ModalFormularioState extends State<ModalFormulario> {
   void initState() {
     super.initState();
     initializeControllers();
-    if (widget.edit == true && widget.evento != null) {
-      nombreController.text = widget.evento!.nombre;
-      descripcionController.text = widget.evento!.descripcion;
+    if (widget.edit == true && widget.libro != null) {
+      tituloController.text = widget.libro!.titulo;
+      autorController.text = widget.libro!.autor;
+      stockController.text = widget.libro!.stock.toString();
       setState(() {
         toogleLoading();
-        pickImageFromUrl(widget.evento!.imagen)
+        pickImageFromUrl(widget.libro!.portada)
             .then((value) => toogleLoading());
+        aplicaPrestamo = widget.libro!.aplicaPrestamo;
       });
     } else {}
   }
@@ -469,8 +592,8 @@ class _ModalFormularioState extends State<ModalFormulario> {
                 children: [
                   Text(
                     widget.edit == true
-                        ? AppStrings.updateEvento
-                        : AppStrings.createEvento,
+                        ? AppStrings.updateLibro
+                        : AppStrings.createLibro,
                     style: AppTheme.textMedium,
                   ),
                   Form(
@@ -482,33 +605,65 @@ class _ModalFormularioState extends State<ModalFormulario> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           AppTextFormField(
-                            controller: nombreController,
-                            labelText: AppStrings.nombre,
+                            controller: tituloController,
+                            labelText: AppStrings.titulo,
                             keyboardType: TextInputType.text,
                             textInputAction: TextInputAction.next,
                             onChanged: (_) => _formKey.currentState?.validate(),
                             validator: (value) {
                               return value!.isEmpty
-                                  ? AppStrings.pleaseEnterNombre
+                                  ? AppStrings.pleaseEnterTitulo
                                   : AppRegex.sevenMinRegex.hasMatch(value)
                                       ? null
-                                      : AppStrings.invalidNombre;
+                                      : AppStrings.invalidTitulo;
                             },
                           ),
                           AppTextFormField(
-                            controller: descripcionController,
-                            labelText: AppStrings.descripcion,
+                            controller: autorController,
+                            labelText: AppStrings.autor,
                             keyboardType: TextInputType.text,
                             textInputAction: TextInputAction.next,
                             onChanged: (_) => _formKey.currentState?.validate(),
                             validator: (value) {
                               return value!.isEmpty
-                                  ? AppStrings.pleaseEnterDescripcion
+                                  ? AppStrings.pleaseEnterAutor
                                   : AppRegex.sevenMinRegex.hasMatch(value)
                                       ? null
-                                      : AppStrings.invalidDescripcion;
+                                      : AppStrings.invalidAutor;
                             },
                           ),
+                          AppTextFormField(
+                            controller: stockController,
+                            labelText: AppStrings.stock,
+                            keyboardType: TextInputType.number,
+                            textInputAction: TextInputAction.next,
+                            onChanged: (_) => _formKey.currentState?.validate(),
+                            validator: (value) {
+                              return value!.isEmpty
+                                  ? AppStrings.pleaseEnterStock
+                                  : AppRegex.positiveNumberRegex.hasMatch(value)
+                                      ? null
+                                      : AppStrings.invalidStock;
+                            },
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "¿Aplica préstamo?",
+                                style: AppTheme.bodySmall
+                                    .copyWith(color: AppColors.white),
+                              ),
+                              Checkbox(
+                                  value: aplicaPrestamo,
+                                  onChanged: (bool? value) {
+                                    setState(() {
+                                      aplicaPrestamo = value;
+                                    });
+                                  }),
+                            ],
+                          ),
+                          const SizedBox(height: 15),
                           selectedImage != null
                               ? Column(
                                   children: [
@@ -562,16 +717,20 @@ class _ModalFormularioState extends State<ModalFormulario> {
                                             Navigator.of(context).pop();
 
                                             if (widget.edit == true &&
-                                                widget.evento != null) {
-                                              EventosServices()
-                                                  .actualizarEvento(
-                                                      nombre:
-                                                          nombreController.text,
-                                                      descripcion:
-                                                          descripcionController
-                                                              .text,
-                                                      imagen: selectedImage,
-                                                      uid: widget.evento!.uid)
+                                                widget.libro != null) {
+                                              LibrosServices()
+                                                  .actualizarLibro(
+                                                      titulo:
+                                                          tituloController.text,
+                                                      autor:
+                                                          autorController.text,
+                                                      portada: selectedImage,
+                                                      uid: widget.libro!.uid,
+                                                      aplicaPrestamo:
+                                                          aplicaPrestamo ??
+                                                              false,
+                                                      stock: int.parse(
+                                                          stockController.text))
                                                   .then((respuesta) {
                                                 toogleLoading();
 
@@ -603,13 +762,18 @@ class _ModalFormularioState extends State<ModalFormulario> {
                                                 }
                                               });
                                             } else {
-                                              EventosServices()
-                                                  .crearEvento(
-                                                nombre: nombreController.text,
-                                                descripcion:
-                                                    descripcionController.text,
-                                                imagen: selectedImage,
-                                              )
+                                              LibrosServices()
+                                                  .crearLibro(
+                                                      titulo:
+                                                          tituloController.text,
+                                                      autor:
+                                                          autorController.text,
+                                                      portada: selectedImage,
+                                                      stock: int.parse(
+                                                          stockController.text),
+                                                      aplicaPrestamo:
+                                                          aplicaPrestamo ??
+                                                              false)
                                                   .then((respuesta) {
                                                 toogleLoading();
 
@@ -649,8 +813,8 @@ class _ModalFormularioState extends State<ModalFormulario> {
                                       }
                                     : null,
                                 child: Text(widget.edit == true
-                                    ? AppStrings.updateEvento
-                                    : AppStrings.createEvento),
+                                    ? AppStrings.updateLibro
+                                    : AppStrings.createLibro),
                               );
                             },
                           ),
