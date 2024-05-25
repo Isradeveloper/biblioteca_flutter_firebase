@@ -71,4 +71,35 @@ class UsuariosServices {
       return {"success": false, "msg": e};
     }
   }
+
+  Future<Map<String, dynamic>> actualizarUsuario({
+    required String nombres,
+    required String apellidos,
+    required String rol,
+    required String uid,
+  }) async {
+    try {
+      DocumentReference usuarioRef = db.collection("usuarios").doc(uid);
+
+      await db.runTransaction((transaction) async {
+        transaction.update(usuarioRef, {
+          "nombres": nombres,
+          "apellidos": apellidos,
+          "rol": rol,
+        });
+      });
+
+      return {
+        "success": true,
+        "msg": "El usuario ha sido actualizado correctamente",
+      };
+    } catch (e) {
+      return {"success": false, "msg": e.toString()};
+    }
+  }
+
+  Stream<List<Usuario>> listarUsuarios() {
+    return db.collection("usuarios").snapshots().map((snap) =>
+        snap.docs.map((doc) => Usuario.fromMap(doc, doc.data())).toList());
+  }
 }

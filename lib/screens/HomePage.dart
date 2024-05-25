@@ -1,22 +1,17 @@
 import 'package:biblioteca_flutter_firebase/screens/EventosPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/LibrosPage.dart';
 import 'package:biblioteca_flutter_firebase/screens/PrestamosPage.dart';
+import 'package:biblioteca_flutter_firebase/screens/UsuariosPage.dart';
 import 'package:biblioteca_flutter_firebase/services/auth.dart';
 import 'package:biblioteca_flutter_firebase/services/usuarios.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-
 import '../services/eventos.dart';
 import '../utils/common_widgets/gradient_background.dart';
-import '../utils/helpers/navigation_helper.dart';
 import '../values/app_colors.dart';
-import '../values/app_routes.dart';
-import '../values/app_strings.dart';
 import '../values/app_theme.dart';
-
 import 'package:carousel_slider/carousel_slider.dart';
-
+import 'ReservasPage.dart';
 import 'Validate.dart';
 
 class HomePage extends StatefulWidget {
@@ -159,24 +154,39 @@ class _HomePageState extends State<HomePage> {
                                   const SizedBox(
                                     width: 5,
                                   ),
-                                  // AccesoCard(
-                                  //     nombre: "Usuarios", icono: Icons.person),
-                                  // SizedBox(
-                                  //   width: 20,
-                                  // ),
-                                  AccesoCard(
-                                    nombre: "Eventos",
-                                    icono: Icons.event_available,
-                                    ruta: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                EventosPage(user: user),
-                                          ));
-                                    },
-                                    usuario: user,
+                                  user.rol == "administrador"
+                                      ? AccesoCard(
+                                          nombre: "Usuarios",
+                                          icono: Icons.person,
+                                          ruta: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      UsuariosPage(user: user),
+                                                ));
+                                          },
+                                          usuario: user,
+                                        )
+                                      : Container(),
+                                  const SizedBox(
+                                    width: 20,
                                   ),
+                                  user.rol == "administrador"
+                                      ? AccesoCard(
+                                          nombre: "Eventos",
+                                          icono: Icons.event_available,
+                                          ruta: () {
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      EventosPage(user: user),
+                                                ));
+                                          },
+                                          usuario: user,
+                                        )
+                                      : Container(),
                                   const SizedBox(
                                     width: 20,
                                   ),
@@ -209,18 +219,22 @@ class _HomePageState extends State<HomePage> {
                                     },
                                     usuario: user,
                                   ),
-                                  // AccesoCard(
-                                  //     nombre: "Prestamos",
-                                  //     icono: Icons.bookmark_added_rounded),
-                                  // SizedBox(
-                                  //   width: 20,
-                                  // ),
-                                  // AccesoCard(
-                                  //     nombre: "Reservas",
-                                  //     icono: Icons.restore_sharp),
-                                  // SizedBox(
-                                  //   width: 20,
-                                  // )
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  AccesoCard(
+                                    nombre: "Reservas",
+                                    icono: Icons.calendar_month,
+                                    ruta: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                ReservasPage(user: user),
+                                          ));
+                                    },
+                                    usuario: user,
+                                  ),
                                 ],
                               )
                             ],

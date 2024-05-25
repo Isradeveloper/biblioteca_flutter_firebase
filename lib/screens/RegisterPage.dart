@@ -21,22 +21,6 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  Future register() async {
-    try {
-      User? user = await AuthServices().createUserWithEmailAndPassword(
-          email: emailController.text,
-          password: passwordController.text,
-          nombres: nameController.text,
-          apellidos: lastNameController.text);
-
-      return {"user": user, "msg": "El usuario ha sido creado, correctamente"};
-    } on FirebaseAuthException catch (e) {
-      return {"user": null, "msg": e.message};
-    } catch (e) {
-      return {"user": null, "msg": e.toString()};
-    }
-  }
-
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController nameController;
@@ -186,15 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     : AppStrings.invalidPassword;
                           },
                           suffixIcon: Focus(
-                            /// If false,
-                            ///
-                            /// disable focus for all of this node's descendants
                             descendantsAreFocusable: false,
-
-                            /// If false,
-                            ///
-                            /// make this widget's descendants un-traversable.
-                            // descendantsAreTraversable: false,
                             child: IconButton(
                               onPressed: () =>
                                   passwordNotifier.value = !passwordObscure,
@@ -233,15 +209,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                     : AppStrings.invalidPassword;
                           },
                           suffixIcon: Focus(
-                            /// If false,
-                            ///
-                            /// disable focus for all of this node's descendants.
                             descendantsAreFocusable: false,
-
-                            /// If false,
-                            ///
-                            /// make this widget's descendants un-traversable.
-                            // descendantsAreTraversable: false,
                             child: IconButton(
                               onPressed: () => confirmPasswordNotifier.value =
                                   !confirmPasswordObscure,
@@ -265,8 +233,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         return FilledButton(
                           onPressed: isValid
                               ? () async {
-                                  await register().then((data) {
-                                    if (data["user"] != null) {
+                                  await AuthServices()
+                                      .createUserWithEmailAndPassword(
+                                          email: emailController.text,
+                                          password: passwordController.text,
+                                          nombres: nameController.text,
+                                          apellidos: lastNameController.text,
+                                          rol: "cliente")
+                                      .then((data) {
+                                    if (data["auth"] != null) {
                                       nameController.clear();
                                       lastNameController.clear();
                                       emailController.clear();

@@ -22,11 +22,12 @@ class AuthServices {
     }
   }
 
-  Future<User?> createUserWithEmailAndPassword({
+  Future<Map> createUserWithEmailAndPassword({
     required String email,
     required String password,
     required String nombres,
     required String apellidos,
+    required String rol
   }) async {
     try {
       var userCredential = await _firebaseAuth.createUserWithEmailAndPassword(
@@ -40,7 +41,7 @@ class AuthServices {
       var userResponse = await UsuariosServices().crearUsuario(
           nombres: nombres,
           apellidos: apellidos,
-          rol: "cliente",
+          rol: rol,
           email: email,
           uid: userCredential.user!.uid);
 
@@ -48,11 +49,13 @@ class AuthServices {
         throw userResponse["msg"];
       }
 
-      return userCredential.user;
+      return {
+        "success": true,
+        "msg": "El usuario ha sido creado correctamente",
+        "auth": userCredential.user
+      };
     } catch (e) {
-      // Capturar y registrar cualquier error que ocurra
-      print("Error al crear usuario: $e");
-      rethrow;
+      return {"success": false, "msg": e.toString()};
     }
   }
 

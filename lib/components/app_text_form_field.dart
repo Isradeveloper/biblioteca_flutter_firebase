@@ -2,20 +2,21 @@ import 'package:biblioteca_flutter_firebase/values/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class AppTextFormField extends StatelessWidget {
-  const AppTextFormField({
-    required this.textInputAction,
-    required this.labelText,
-    required this.keyboardType,
-    required this.controller,
-    super.key,
-    this.onChanged,
-    this.validator,
-    this.obscureText,
-    this.suffixIcon,
-    this.onEditingComplete,
-    this.autofocus,
-    this.focusNode,
-  });
+  const AppTextFormField(
+      {required this.textInputAction,
+      required this.labelText,
+      required this.keyboardType,
+      required this.controller,
+      super.key,
+      this.onChanged,
+      this.validator,
+      this.obscureText,
+      this.suffixIcon,
+      this.onEditingComplete,
+      this.autofocus,
+      this.focusNode,
+      this.readOnly,
+      this.onTap});
 
   final void Function(String)? onChanged;
   final String? Function(String?)? validator;
@@ -26,6 +27,8 @@ class AppTextFormField extends StatelessWidget {
   final Widget? suffixIcon;
   final String labelText;
   final bool? autofocus;
+  final bool? readOnly;
+  final void Function()? onTap;
   final FocusNode? focusNode;
   final void Function()? onEditingComplete;
 
@@ -44,6 +47,8 @@ class AppTextFormField extends StatelessWidget {
         obscureText: obscureText ?? false,
         obscuringCharacter: '*',
         onEditingComplete: onEditingComplete,
+        onTap: onTap,
+        readOnly: readOnly ?? false,
         decoration: InputDecoration(
             suffixIcon: suffixIcon,
             labelText: labelText,

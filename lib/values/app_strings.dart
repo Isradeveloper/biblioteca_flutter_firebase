@@ -65,4 +65,18 @@ class AppStrings {
 
   static const createLibro = 'Crear libro';
   static const updateLibro = 'Actualizar libro';
+
+  static const fecha = 'Fecha';
+  static const pleaseEnterFecha = 'Ingrese la fecha de reserva';
+
+  static const motivo = 'Motivo';
+  static const pleaseEnterMotivo = 'Ingrese el motivo';
+  static const invalidMotivo = 'El motivo debe tener más de 7 dígitos';
+
+  static const createReserva = 'Crear reserva';
+
+  static const createUsuario = 'Crear usuario';
+  static const editUsuario = 'Actualizar usuario';
+
+  
 }
